@@ -1,0 +1,15 @@
+[
+	{
+		  `id` int(0) NOT NULL AUTO_INCREMENT,
+		  `template_id` int(0) NULL DEFAULT NULL COMMENT '模板id',
+		  `user_id` int(0) NULL DEFAULT NULL COMMENT '用户id',
+		  `course_id` int(0) NULL DEFAULT NULL COMMENT '课程id',
+		  `create_time` date NULL DEFAULT NULL COMMENT '发布时间',
+		  `content` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL DEFAULT NULL COMMENT '内容',
+		  "id": 1,
+		  "template_id": 1,
+		  "user_id": 3,
+		  "course_id": 3
+		  
+	}
+]

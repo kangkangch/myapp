@@ -1,0 +1,50 @@
+[
+	{
+		"courseId": 1,
+		"name": "测试用课程1",
+		"intro": "课程介绍111",
+		"start_time": "2023-05-01",
+		"end_time": "2024-05-01",
+		"coverPath": "/static/noImg.png",
+		"price": 100,
+		"memberprice": 80,
+		"examId": 1,
+		"now_people": 10
+	},
+	{
+		"courseId": 2,
+		"name": "测试用课程2",
+		"intro": "课程介绍111",
+		"start_time": "2023-05-01",
+		"end_time": "2024-05-01",
+		"coverPath": "/static/noImg.png",
+		"price": 100,
+		"memberprice": 80,
+		"examId": 2,
+		"now_people": 10
+	},
+	{
+		"courseId": 3,
+		"name": "测试用课程3",
+		"intro": "课程介绍111",
+		"start_time": "2023-05-01",
+		"end_time": "2024-05-01",
+		"coverPath": "/static/noImg.png",
+		"price": 100,
+		"memberprice": 80,
+		"examId": 3,
+		"now_people": 10
+	},
+	{
+		"courseId": 4,
+		"name": "测试用课程4",
+		"intro": "课程介绍111",
+		"start_time": "2023-05-01",
+		"end_time": "2024-05-01",
+		"coverPath": "/static/noImg.png",
+		"price": 100,
+		"memberprice": 80,
+		"examId": 4,
+		"now_people": 10
+	}
+]

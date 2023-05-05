@@ -1,0 +1,50 @@
+[{
+		"id": 1,
+		"name": "活动测试1",
+		"create_time": "2023-04-14 14:54:28",
+		"content": "测试活动111111111111111",
+		"cover_path": "/static/noImg.png",
+		"price": 100,
+		"max_people": 100,
+		"now_people": 10,
+		"start_time": "2019-01-01",
+		"end_time": "2019-01-01",
+		"status": "报名中"
+	},{
+		"id": 2,
+		"name": "活动测试2",
+		"create_time": "2023-04-14 14:54:28",
+		"content": "测试活动22222222222",
+		"cover_path": "/static/noImg.png",
+		"price": 100,
+		"max_people": 100,
+		"start_time": "2019-01-01",
+		"end_time": "2019-01-01",
+		"status": "报名中",
+		"now_people": 10
+	},{
+		"id": 3,
+		"name": "活动测试3",
+		"create_time": "2023-04-14 14:54:28",
+		"content": "测试活动333333333",
+		"cover_path": "/static/noImg.png",
+		"price": 100,
+		"max_people": 100,
+		"start_time": "2019-01-01",
+		"end_time": "2019-01-01",
+		"status": "报名中",
+		"now_people": 10
+	},{
+		"id": 4,
+		"name": "活动测试4",
+		"create_time": "2023-04-14 14:54:28",
+		"content": "测试活动444444444444",
+		"cover_path": "/static/noImg.png",
+		"price": 100,
+		"max_people": 100,
+		"start_time": "2019-01-01",
+		"end_time": "2019-01-01",
+		"status": "报名中",
+		"now_people": 10
+	}
+]
