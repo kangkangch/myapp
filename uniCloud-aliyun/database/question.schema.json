@@ -1,6 +1,6 @@
 {
 	"bsonType": "object",
-	"required": [],
+	"required": ["answer"],
 	"permission": {
 		"read": false,
 		"create": false,
@@ -40,22 +40,25 @@
 			"bsonType":"int",
 			"title":"答案",
 			"description":"答案",
+			"errorMessage":{
+				"required" : "请给题目设置正确答案"
+			},
 			"enum":[
 				{
 					"text":"答案A",
-					"value":0
-				},
-				{
-					"text":"答案B",
 					"value":1
 				},
 				{
+					"text":"答案B",
+					"value":2
+				},
+				{
 					"text":"答案C",
-					"value:":2
+					"value:":3
 				},
 				{
 					"text":"答案D",
-					"value":3
+					"value":4
 				}
 			]
 		},

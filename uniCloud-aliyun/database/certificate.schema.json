@@ -46,34 +46,16 @@
 			"defaultValue": null
 		},
 		"status": {
-			"bsonType": "int",
+			"bsonType": "bool",
 			"title": "审核状态",
-			"description": "0 审核中， 1 已审核",
-			"defaultValue": 0,
-			"enum": [{
-					"text": "审核中",
-					"value": 0
-				},
-				{
-					"text": "已审核",
-					"value": 1
-				}
-			]
+			"description": "false 审核中， true 已审核",
+			"defaultValue": false
 		},
 		"is_overdue": {
-			"bsonType": "int",
+			"bsonType": "bool",
 			"title": "是否过期",
-			"description": "0: 没过期， 1 已过期",
-			"defaultValue": 0,
-			"enum": [{
-					"text": "有效",
-					"value": 0
-				},
-				{
-					"text": "已过期",
-					"value": 1
-				}
-			]
+			"description": "false: 没过期， true 已过期",
+			"defaultValue": false
 		}
 	}
 }

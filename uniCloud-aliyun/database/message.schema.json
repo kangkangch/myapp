@@ -22,49 +22,22 @@
 			"description":"消息内容"
 		},
 		"email":{
-			"bsonType":"int",
+			"bsonType":"bool",
 			"title":"是否发送到邮箱",
-			"description":"是否发送到邮箱",
-			"enum":[
-				{
-					"text":"不发送到邮箱",
-					"value":0
-				},
-				{
-					"text":"发送到邮箱",
-					"value":1
-				}
-			]
+			"description":"是否发送到邮箱 true为是，false为否",
+			"defaultValue": false
 		},
 		"message":{
-			"bsonType":"int",
+			"bsonType":"bool",
 			"title":"是否发送消息",
-			"description":"是否发送消息",
-			"enum":[
-				{
-					"text":"不发送消息",
-					"value":0
-				},
-				{
-					"text":"发送消息",
-					"value":1
-				}
-			]
+			"description":"是否发送消息 false为否， true为发送",
+			"defaultValue": true
 		},
 		"read":{
-			"bsonType":"int",
+			"bsonType":"bool",
 			"title":"是否已读",
-			"description":"是否已读",
-			"enum":[
-				{
-					"text":"未读",
-					"value":0
-				},
-				{
-					"text":"已读",
-					"value":1
-				}
-			]
+			"description":"是否已读 false未读， true已读",
+			"defaultValue": false
 		},
 		"user_id":{
 			"bsonType":"int",

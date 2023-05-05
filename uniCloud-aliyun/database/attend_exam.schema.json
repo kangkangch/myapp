@@ -45,19 +45,10 @@
 			"description": "用户的答卷"
 		},
 		"status": {
-			"bsonType": "int",
+			"bsonType": "bool",
 			"title": "考试状态",
-			"description": "考试状态：1进行中 2已结束",
-			"defaultValue": 1,
-			"enum": [{
-					"text": "进行中",
-					"value": 1
-				},
-				{
-					"text": "已结束",
-					"value": 2
-				}
-			]
+			"description": "考试状态：true进行中 false已结束",
+			"defaultValue": true
 		},
 		"score": {
 			"bsonType": "int",

@@ -26,17 +26,7 @@
 		"seat": {
 			"bsonType": "int",
 			"title": "座位号",
-			"description": "该用户的座位号",
-			"defaultValue": 0,
-			"enum": [{
-					"text": "未报名",
-					"value": 0
-				},
-				{
-					"text": "已报名",
-					"value": 1
-				}
-			]
+			"description": "该用户的座位号"
 		}
 	}
 }

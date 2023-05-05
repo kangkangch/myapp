@@ -11,37 +11,64 @@
 		"_id": {
 			"description": "ID，系统自动生成"
 		},
-		"name": {
-			"bsonType": "string",
-			"title": "课程名称",
-			"description": "课程名称"
-		},
-		"intro": {
-			"bsonType": "string",
-			"title": "课程简介",
-			"description": "课程简介"
-		},
-		"cover_path": {
-			"bsonType": "string",
-			"title": "封面路径",
-			"description": "封面路径",
-			"defaultValue": "/static/noImg.png"
-		},
-		"price": {
+		"user_id": {
 			"bsonType": "int",
-			"title": "课程价格",
-			"description": "课程价格，用int保存，保存分位"
+			"title": "用户id",
+			"description": "",
+			"foreignKey": "user._id"
 		},
-		"vip_price": {
+		"course_id": {
 			"bsonType": "int",
-			"title": "vip价格",
-			"description": "课程vip价格"
+			"title": "课程id",
+			"description": "",
+			"foreignKey": "course._id"
 		},
-		"exam_id": {
+		
+		"create_time": {
+			"bsonType": "timestamp",
+			"title": "参加时间",
+			"description": ""
+		},
+		"status": {
 			"bsonType": "int",
-			"title": "考试id",
-			"description": "对应考试的id"
+			"title": "考试状态",
+			"description": "1未通过，2已通过，3不通过",
+			"defaultValue": 1,
+			"enum": [{
+					"text": "未通过",
+					"value": 1
+				},
+				{
+					"text": "已通过",
+					"value": 2
+				},
+				{
+					"text": "不通过",
+					"value": 3
+				}
+			]
+		},
+		"chance": {
+			"bsonType": "int",
+			"title": "剩余机会",
+			"description": "",
+			"defaultValue": 3
+		},
+		"score": {
+			"bsonType": "int",
+			"title": "最高分数",
+			"description": ""
+		},
+		"end_time": {
+			"bsonType": "timestamp",
+			"title": "结束时间",
+			"description": "最后考试期限"
+		},
+		"cert": {
+			"bsonType": "bool",
+			"title": "是否颁发证书",
+			"description": "false不颁发 true颁发",
+			"defaultValue": false
 		}
-
 	}
 }

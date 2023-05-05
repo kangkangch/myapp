@@ -23,19 +23,10 @@
 			"foreignKey": "user._id"
 		},
 		"status": {
-			"bsonType": "int",
+			"bsonType": "bool",
 			"title":"优惠券状态",
-			"description":"优惠券的状态，0为未使用，1为已使用",
-			"enum":[
-				{
-					"text":"未使用",
-					"value":0
-				},
-				{
-					"text":"已使用",
-					"value":1
-				}
-			]
+			"description":"优惠券的状态，false为未使用，true为已使用",
+			"defaultValue": false
 		}
 	}
 }

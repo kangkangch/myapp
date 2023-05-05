@@ -24,19 +24,10 @@
 			"foreignKey": "user._id"
 		},
 		"status": {
-			"bsonType": "int",
+			"bsonType": "bool",
 			"title": "参加状态",
-			"description": "用户参加活动的状态： 0未报名，1已报名",
-			"defaultValue": 0,
-			"enum": [{
-					"text": "未报名",
-					"value": 0
-				},
-				{
-					"text": "已报名",
-					"value": 1
-				}
-			]
+			"description": "用户参加活动的状态： false未报名，true已报名",
+			"defaultValue": false
 		}
 	}
 }

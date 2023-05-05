@@ -28,19 +28,10 @@
 			"description":"订单价格"
 		},
 		"status":{
-			"bsonType":"int",
+			"bsonType":"bool",
 			"title":"订单状态",
-			"description":"订单状态",
-			"enum":[
-				{
-					"text":"未支付",
-					"value":0
-				},
-				{
-					"text":"已支付",
-					"value":1
-				}
-			]
+			"description":"订单状态 true为已支付， false为未支付",
+			"defaultValue": false
 		},
 		"trade_no":{
 			"bsonType":"string",
