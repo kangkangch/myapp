@@ -17,24 +17,33 @@
 			</view>
 		</view>
 		<!-- 列表 -->
-		<view class="content">
-			<view class="list">
-				<view class="subject" v-for="(item, index) in content" :key="index" @click="gotoCourse(item.courseId)">
-					<image class="picture" :src="item.coverPath" mode="aspectFill"></image>
-					<view class="detail">
-						<cl-text :size="32" :value="item.name" color="#303030" bold :ellipsis="2"></cl-text>
-						<!-- 						<cl-text :size="20" :value="item.tip" color="#C5C5C5" bold block
+		<unicloud-db ref="udb" :collection="collectionList" field="name,intro,cover_path,price,vip_price,exam_id"
+			 :orderby="orderby" v-slot:default="{data,loading,error,options}"
+			:options="options">
+			<view v-if="error">{{error.message}}</view>
+			<view v-else-if="loading">课程正在加载...</view>
+			<view v-else class="content">
+				<view class="list">
+					<view class="subject" v-for="(item, index) in data" :key="index"
+						@click="gotoCourse(item._id)">
+						<image class="picture" :src="item.cover_path" mode="aspectFill"></image>
+						<view class="detail">
+							<cl-text :size="32" :value="item.name" color="#303030" bold :ellipsis="2"></cl-text>
+							<!-- 						<cl-text :size="20" :value="item.tip" color="#C5C5C5" bold block
 							:margin="[8, 0, 0, 0]"></cl-text> -->
-						<cl-text :size="24" value="单价:" color="#303030"></cl-text>
-						<cl-text :size="24" value="￥" color="#FF724E"></cl-text>
-						<cl-text :size="40" :value="item.price" color="#FF724E" :margin="[8, 0, 0, 0]"></cl-text>
+							<cl-text :size="24" value="单价:" color="#303030"></cl-text>
+							<cl-text :size="24" value="￥" color="#FF724E"></cl-text>
+							<cl-text :size="40" :value="(item.price/100).toFixed(2)" color="#FF724E" :margin="[8, 0, 0, 0]"></cl-text>
+						</view>
 					</view>
 				</view>
 			</view>
-		</view>
+		</unicloud-db>
+
 		<u-tabbar :value="value" :fixed="true" :placeholder="true" :safeAreaInsetBottom="true">
 			<!-- <u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text" @tap="goto(item.pagePath)">-->
-			<u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text" @click="$goBack(3, item.pagePath)">
+			<u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text"
+				@click="$goBack(3, item.pagePath)">
 				<image class="u-page__item__slot-icon" slot="active-icon" :src="item.selectedIconPath"></image>
 				<image class="u-page__item__slot-icon" slot="inactive-icon" :src="item.iconPath"></image>
 			</u-tabbar-item>
@@ -43,17 +52,23 @@
 </template>
 
 <script>
-	import { user_guest, user_student, user_member } from "@/utils/tabbar.js";
+	import {
+		user_guest,
+		user_student,
+		user_member
+	} from "@/utils/tabbar.js";
 	import {
 		getLdata
 	} from "@/service/getLdata.js";
 
 	const course = require('@/static/data/course.json');
+	const dbOrderby = 'name';
 
 	export default {
 		mounted() {},
 		data() {
 			return {
+				collectionList: ['course'],
 				selectIndex: 0,
 				swiperList: [{
 						url: require("@/static/images/index/banner1.png")
@@ -65,60 +80,34 @@
 						url: require("@/static/images/index/banner3.png")
 					},
 				],
-				content: [{
-						name: "普通人也可执行的赚钱思路课程",
-						coverPath: require("@/static/images/index/course1.png"),
-						price: "68.0",
-					},
-					{
-						name: "普通人也可执行的赚钱思路课程",
-						coverPath: require("@/static/images/index/course2.png"),
-						price: "52.0",
-					},
-					{
-						name: "普通人也可执行的赚钱思路课程",
-						coverPath: require("@/static/images/index/course3.png"),
-						price: "33.0",
-					},
-					{
-						name: "普通人也可执行的赚钱思路课程",
-						coverPath: require("@/static/images/index/course1.png"),
-						price: "68.0",
-					},
-					{
-						name: "普通人也可执行的赚钱思路课程",
-						coverPath: require("@/static/images/index/course2.png"),
-						price: "52.0",
-					},
-					{
-						name: "普通人也可执行的赚钱思路课程",
-						coverPath: require("@/static/images/index/course3.png"),
-						price: "33.0",
-					},
-				],
+				content: [],
+				orderby: dbOrderby,
 				keyword: "", //搜索用的关键词
-				uid: "",
+				user_id: "",
 				mytabbar: user_guest,
-				value:0
+				value: 0
 			};
 		},
 
 		onLoad(e) {
 			this.gettabbar();
-			let uid = uni.getStorageSync('user').uId;
-			if (uid) {
-				this.uid = uid;
+			let user_id = uni.getStorageSync('user')._id;
+			if (user_id) {
+				this.user_id = user_id;
 			}
 
-			console.log(course);
-			this.content = course;
+			// console.log(course);
+			// this.content = course;
 			// this.getlist()
+		},
+		onReady() {
+		  this.$refs.udb.loadData()
 		},
 
 
 
 
-	methods: {
+		methods: {
 			toChange() {
 				console.log(this.active);
 			},
@@ -131,7 +120,7 @@
 					})
 				} else {
 					uni.navigateTo({
-						url: '/pages/course/course?courseId=' + courseId
+						url: '/pages/course/course?course_id=' + courseId
 					})
 				}
 			},
@@ -143,11 +132,11 @@
 					console.log(err)
 				})
 			},
-			gettabbar(){
-				let user = uni.getStorageSync('user');
-				console.log(user.role_id);
-				if(user == '') this.mytabbar = user_guest;
-				else if(user.role_id ==2 ) this.mytabbar = user_member;
+			gettabbar() {
+				let token = uni.getStorageSync('token');
+				// console.log(user.role_id);
+				if (token == '') this.mytabbar = user_guest;
+				else if (token.role_id == 2) this.mytabbar = user_member;
 				else this.mytabbar = user_student;
 			}
 		},

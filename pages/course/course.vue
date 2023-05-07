@@ -1,44 +1,53 @@
 <template>
 	<view>
-		<view class="body" v-if="lx==0">
-			<u-row>
-				<u-col span="5">
-					<view>
-						<image class="images" :src="course.coverPath" mode="widthFix"></image>
-					</view>
-				</u-col>
-				<u-col span="7">
-					<view class="title">
-						{{course.name}}
-					</view>
-				</u-col>
+		<unicloud-db ref="udb" collection="course" @load="setData" :where="where"
+			v-slot:default="{data,loading,error,options}" :options="options">
+			<view v-if="error">{{error.message}}</view>
+			<view v-else-if="loading">课程正在加载...</view>
+			<view v-else class="body">
+				<u-row>
+					<u-col span="5">
+						<view>
+							<image class="images" :src="course.cover_path" mode="widthFix"></image>
+						</view>
+					</u-col>
+					<u-col span="7">
+						<view class="title">
+							{{course.name}}
+						</view>
+					</u-col>
 
-			</u-row>
-			<u-line margin="10rpx"></u-line>
-			<view class="freu">
-				会员价：￥{{course.price * 0.8}}
-			</view>
-			<view class="freu2">
-				学员价： ￥{{course.price}}
-			</view>
-		</view>
+				</u-row>
+				<u-line margin="10rpx"></u-line>
+				<view v-if="isBuy" class="course_price">
+					<view class="freu">
+						会员价：￥{{(course.vip_price/100).toFixed(2)}}
+					</view>
+					<view class="freu2">
+						学员价： ￥{{(course.price/100).toFixed(2)}}
+					</view>
+				</view>
 
-		<view class="body">
-			<u-cell-group class="group_warp">
-				<u-cell title="课程介绍" class="group_title"></u-cell>
-				<u-cell :title="course.intro"></u-cell>
-				<u-cell title="开始时间:" :value="course.begin"></u-cell>
-				<u-cell title="结束时间:" :value="course.end"></u-cell>
-			</u-cell-group>
-		</view>
-		<view class="dibu">
-			<u-row customStyle="margin-bottom: 10px">
-				<u-col span="12">
-					<view class="goumai" @click="getsc(3)">立即购买</view>
-					<view class="goumai2" v-if="datalist.pay==0" @click="getsc(1)">立即加入</view>
-				</u-col>
-			</u-row>
-		</view>
+				<view class="body">
+					<u-cell-group class="group_warp">
+						<u-cell title="课程介绍" class="group_title"></u-cell>
+						<u-cell :title="course.intro"></u-cell>
+						<u-cell title="开始时间: " :value="course.begin_time"></u-cell>
+						<u-cell title="结束时间: " :value="course.end_time"></u-cell>
+					</u-cell-group>
+				</view>
+				<view class="dibu">
+					<u-row customStyle="margin-bottom: 10px">
+						<u-col span="12">
+							<view class="goumai2" v-if="datalist.pay==0" @click="getsc(1)">前往考试</view>
+							<view class="goumai" @click="getsc(3)">立即购买</view>
+						</u-col>
+					</u-row>
+				</view>
+			</view>
+
+
+		</unicloud-db>
 	</view>
 </template>
 
@@ -49,15 +58,19 @@
 	import {
 		onLoad
 	} from "../../uni_modules/uview-ui/libs/mixin/mixin";
+
+	const db = uniCloud.database();
+
 	export default {
 		data() {
 			return {
+				where: "",
 				course: [],
 				lx: 0,
-				id: 0,
+				course_id: 0,
 				uid: 0,
 				//用于存放是否购买了该课程
-				gm: 0,
+				isBuy: false,
 				sc: 0,
 				datalist: {},
 				list4: [{
@@ -65,33 +78,41 @@
 				}],
 			}
 		},
-		onLoad(e) {
-			this.id = e.courseId;
-			// let time  = new Date().getTime() + '';
-			// console.log(time);
-			let uid = uni.getStorageSync('user').uId;
+		async onLoad(e) {
+			let uid = uni.getStorageSync('user').user_id;
 			if (uid) {
 				this.uid = uid;
 			}
-			this.getlist()
+			let params = {
+				user_id: uid,
+				course_id: e.course_id
+			}
+
+			this.isBuy = await this.hasBought(params);
+			console.log(111);
+
+			if (!this.isBuy) {
+				this.where = "_id=='" + e.course_id + "'"
+				this.course_id = e.course_id;
+			}
+
 		},
 		methods: {
-			getlist() {
-				// getLdata('/static/data/course.json').then(res => {
-				// 	console.log(res)
-				// 	this.datalist = res.data;
-				// }).catch(err => {
-				// 	console.log(err)
-				// })
-				const courses = require('@/static/data/course.json');
-
-				courses.forEach((item) => {
-					if (item.courseId == this.id) {
-						this.course = item;
-						return false;
-					}
-				})
+			setData(data, ended, pagination) {
+				this.course = data[0];
+				console.log(this.course);
 			},
+
+			//判断是否已购买课程，如果已经购买，直接跳转
+			async hasBought(params) {
+				let course = await db.collection('attend_course')
+					.where("course_id==${params.course_id} && user_id = ${params.user_id}")
+				console.log(course);
+				if (course.length != 0) {
+					return true;
+				} else return false;
+			},
+
 			kecheng(item) {
 				// console.log(item)
 				if (this.datalist.pay == 0) {
@@ -118,11 +139,6 @@
 					}
 				}
 
-			},
-			jom(v) {
-				uni.navigateTo({
-					url: v
-				});
 			},
 			addsc() {
 				if (this.uid == 0) {

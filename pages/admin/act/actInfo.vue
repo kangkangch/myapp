@@ -246,9 +246,6 @@
 				uni.switchTab({
 					url: '/pages/public/home/home',
 				});
-				setTimeout(() => {
-					this.$router.go(0)
-				}, 0)
 			},
 			changeAct(){
 				this.form = JSON.parse(JSON.stringify(this.act));

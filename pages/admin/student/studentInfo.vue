@@ -93,9 +93,6 @@
 				uni.switchTab({
 					url: '/pages/public/home/home',
 				});
-				setTimeout(() => {
-					this.$router.go(0)
-				}, 0)
 			}
 		},
 	};

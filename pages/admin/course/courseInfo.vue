@@ -220,9 +220,6 @@
 				uni.switchTab({
 					url: '/pages/public/home/home',
 				});
-				setTimeout(() => {
-					this.$router.go(0)
-				}, 0)
 			},
 			changeCourse(){
 				this.form = JSON.parse(JSON.stringify(this.course));

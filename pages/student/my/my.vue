@@ -6,8 +6,8 @@
 			<!-- 个人信息 -->
 			<view class="info">
 				<view class="detail">
-					<cl-text :size="36" :value="'用户'+ user.passwordPhone" color="#FFFFFF" block bold></cl-text>
-					<view class="tag">ID:  {{user.uId}}</view>
+					<cl-text :size="36" :value="'用户'+ user.user_name" color="#FFFFFF" block bold></cl-text>
+					<view class="tag">ID:  {{user.user_id}}</view>
 				</view>
 			</view>
 		</view>
@@ -75,9 +75,6 @@
 				uni.reLaunch({
 					url: '/pages/public/home/home',
 				});
-				setTimeout(() => {
-					this.$router.go(0)
-				}, 0)
 			}
 		},
 	};

@@ -75,16 +75,6 @@
 					url: url,
 				});
 			},
-			logout() {
-				//登出逻辑
-				uni.removeStorageSync('user');
-				uni.switchTab({
-					url: '/pages/public/home/home',
-				});
-				setTimeout(() => {
-					this.$router.go(0)
-				}, 0)
-			}
 		},
 	};
 </script>

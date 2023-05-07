@@ -1,75 +1,84 @@
 <template>
-	<view class="content">
-		<!-- <view class="login_img"><image mode="aspectFill" src="/static/image/iamhe.png"></image></view> -->
-		<view class="login_from">
+	<view class="uni-content">
+		<!-- 顶部文字 -->
+		<text class="title title-box">用户名密码注册</text>
+		<uni-forms :value="formData" ref="uForm" :rules="rules" validate-trigger="submit" err-show-type="toast">
+			<uni-forms-item name="phone" required>
+				<uni-easyinput :inputBorder="false" class="input-box" placeholder="请输入手机号" v-model="formData.phone"
+					maxlength="11" trim="both" />
+			</uni-forms-item>
 
-			<u-form :model="data" ref="uForm" label-position="left">
-				<u-form-item label="手机号码" prop="passwordPhone" borderBottom label-width="150rpx">
-					<u-input v-model="data.passwordPhone" placeholder="请输入手机号" border="none" maxlength="11" />
-				</u-form-item>
-				<u-form-item label="密码" prop="passwordPassword" borderBottom>
-					<u-input v-model="data.passwordPassword" placeholder="请输入密码" border="none" maxlength="14" />
-				</u-form-item>
-			</u-form>
-			<!-- 			<view class="login_from_dl">
-				<button @click="login">登录</button>
-			</view> -->
-			<u-button type="primary" text="登录" customStyle="margin-top: 50px" @click="login"></u-button>
-			<u-button type="error" text="重置" customStyle="margin-top: 10px" @click="reset"></u-button>
-			<u-button type="success" shape="circle" text="还没有账号？点击注册" customStyle="margin-top: 40px"
-				@click="$goBack(2,'/pages/public/regist')"></u-button>
-			<u-button type="warning" shape="circle" text="用手机验证码方式登录" customStyle="margin-top: 10px"
-				@click="$goBack(2,'/pages/public/loginwithC')"></u-button>
-		</view>
+			<uni-forms-item name="password" v-model="formData.password" required>
+				<uni-easyinput :inputBorder="false" class="input-box" maxlength="16" :placeholder="'请输入8-16位密码'"
+					type="password" v-model="formData.password" trim="both" />
+			</uni-forms-item>
+
+			<button class="uni-btn" type="primary" @click="submit">登录</button>
+			<button @click="$goBack(1, 1)" class="register-back">返回</button>
+			<view class="link-box">
+				<!-- 			<view v-if="!config.isAdmin">
+								<text class="forget">忘记了？</text>
+								<text class="link" @click="toRetrievePwd">找回密码</text>
+							</view> -->
+				<text class="link" @click="$goBack(2, '/pages/public/loginwithC')">短信验证码登录</text>
+				<text class="link" @click="$goBack(2, '/pages/public/regist')">注册账号</text>
+
+			</view>
+		</uni-forms>
 	</view>
 </template>
 <script>
+	const userIo = uniCloud.importObject("user-io");
 	export default {
 
 		data() {
-			let data = {
+			let formData = {
 				//手机密码登录
-				passwordPhone: "",
-				passwordPassword: "",
+				phone: "",
+				password: ""
 			}
 			return {
-				data,
+				data: "",
+				formData,
 				rules: {
-					passwordPhone: [{
-							required: true,
-							message: '请输入手机号码',
-							// 可以单个或者同时写两个触发验证方式 
-							trigger: ['change', 'blur'],
-						},
-						{
-							len: 11,
-							// 自定义验证函数，见上说明
-							validator: (rule, value, callback) => {
-								// 上面有说，返回true表示校验通过，返回false表示不通过
-								// this.$u.test.mobile()就是返回true或者false的
-								return this.$u.test.mobile(value);
+					"phone": {
+						"rules": [{
+								required: true,
+								errorMessage: '请输入手机号',
 							},
-							message: '手机号码不正确',
-							// 触发器可以同时用blur和change
-							trigger: 'blur',
-						}
-					],
-					passwordPassword: [{
-							min: 8,
-							max: 14,
-							message: '密码长度错误',
-							trigger: 'change',
-						},
-						// 正则判断为字母或数字
-						{
-							pattern: /^[0-9a-zA-Z]*$/g,
-							// 正则检验前先将值转为字符串
-							transform(value) {
-								return String(value);
+							{
+								validateFunction: function(rule, value, data, callback) {
+									// console.log(value);
+									if (!/^1\d{10}$/.test(value)) {
+										callback('请输入正确手机号')
+									};
+									return true
+								}
+							}
+						],
+						"label": "手机号"
+					},
+					"password": {
+						"rules": [{
+								required: true,
+								errorMessage: '请输入密码',
 							},
-							message: '只能包含字母或数字'
-						},
-					]
+							{
+								minLength: 8,
+								maxLength: 16,
+								errorMessage: '密码长度在 {minLength} 到 {maxLength} 个字符'
+							}, {
+								validateFunction: function(rule, value, data, callback) {
+									// console.log(value);
+									if (/^[^\u4e00-\u9fa5 ]$/.test(value)) {
+										callback('密码不能包含中文和空格');
+									}
+									return true;
+								}
+							}
+						],
+						"label": "密码"
+					},
 				},
 			}
 		},
@@ -81,65 +90,34 @@
 				this.index = e.detail.value
 			},
 
-			login() {
-				//登录逻辑判断
-				const user = uni.getStorageSync(this.data.passwordPhone);
-				if (user != '') {
-					// console.log(typeof(user.codeRegisterPassword),typeof(this.data.passwordPassword));
-					if (user.codeRegisterPassword == this.data.passwordPassword) {
-						let data = this.data;
-						data['role_id'] = user.role_id;
-						data['uId'] = user.uId;
-						uni.setStorageSync('user', data);
-						uni.showToast({
-							"title": "登录成功",
-							"icon": 'none'
-						})
-						if (user.role_id == 1) {
-							uni.reLaunch({
-								url: '/pages/admin//student/student'
-							})
-
-							// uni.switchTab({
-							// 	url:'/pages/admin/my/my'
-							// })
-						} else {
-							// uni.switchTab({
-							// 	url:'/pages/public/home/home'
-							// })
-							uni.reLaunch({
-								url: '/pages/public/home/home'
-							})
-						}
-						setTimeout(() => {
-							this.$router.go(0)
-						}, 0)
-					} else {
-						uni.showToast({
-							"title": "密码错误",
-							"icon": 'none'
-						})
-					}
-				} else {
-					if (this.data.passwordPhone == '') {
-						uni.showToast({
-							"title": "请输入手机号",
-							"icon": 'none'
-						})
-					} else {
-						uni.showToast({
-							"title": "账号不存在",
-							"icon": 'none'
-						})
-					}
+			async login() {
+				try {
+					this.data = this.formData;
+					const user = await userIo.loginwithpwd(this.data);
+					// console.log(11111111,user);
+					uni.setStorageSync('user', user);
+					uni.showToast({
+						title: "登录成功",
+						icon: "none"
+					})
+					uni.switchTab({
+						url: '/pages/public/home/home'
+					})
+				} catch (e) {
+					console.log("登录失败",e.message);
 				}
+
 			},
 			submit() {
 				this.$refs.uForm.validate().then(res => {
-					uni.$u.toast('校验通过')
+					console.log('校验通过：', res);
 					this.login();
 				}).catch(errors => {
-					uni.$u.toast('校验失败')
+					uni.showToast({
+						title: errors[0].errorMessage,
+						icon: "none"
+					})
+					console.log(errors)
 				})
 			},
 			reset() {
@@ -158,115 +136,46 @@
 	}
 </script>
 <style>
+	@import "@/uni_modules/uni-id-pages/common/login-page.scss";
+
+	@media screen and (max-width: 300px) {
+		.uni-content {
+			margin-top: 15px;
+			height: 100%;
+			background-color: #fff;
+		}
+	}
+
+	@media screen and (min-width: 300px) {
+		.uni-content {
+			padding: 30px 40px 60px;
+			max-height: 530px;
+		}
+
+		.link-box {
+			/* #ifndef APP-NVUE */
+			display: flex;
+			/* #endif */
+			flex-direction: row;
+			justify-content: space-between;
+			margin-top: 10px;
+		}
+
+		.link {
+			font-size: 12px;
+		}
+	}
+
+	.uni-content ::v-deep .uni-forms-item__label {
+		position: absolute;
+		left: -15px;
+	}
+
+	button {
+		margin-top: 15px;
+	}
+
 	page {
 		background: #fff;
-	}
-
-	.login_img {
-		width: 100%;
-		height: auto;
-		margin-top: 90upx;
-	}
-
-	.login_img image {
-		width: 170upx;
-		height: 170upx;
-		display: block;
-		margin: 0px auto;
-		border-radius: 50%;
-	}
-
-	.login_from {
-		width: 100%;
-		height: auto;
-		box-sizing: border-box;
-		padding: 20upx 8%;
-	}
-
-	.login_from_input {
-		width: 100%;
-		height: auto;
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-		border-bottom: 1px #eee solid;
-		padding: 40upx 0px;
-		margin: 0px auto;
-	}
-
-	.login_from_name {
-		width: 20%;
-	}
-
-	.login_from_fun {
-		width: 80%;
-		display: flex;
-		flex-direction: row;
-		justify-content: flex-end;
-		align-items: center;
-	}
-
-	.login_from_fun input {
-		width: 100%;
-		text-align: left;
-		font-size: 14px;
-	}
-
-
-	.login_from_dl {
-		width: 100%;
-		height: 50px;
-		line-height: 50px;
-		margin-top: 150upx;
-	}
-
-	.login_from_dl uni-button {
-		width: 100%;
-		height: 50px;
-		line-height: 50px;
-		/* background: #FF3B00; */
-		/* color: #fff; */
-		border-radius: 50px;
-	}
-
-	.cuIcon-squarecheckfill {
-		color: #FF3B00;
-	}
-
-	.logo_text text {
-		color: #FF3B00;
-	}
-
-	.getyzm {
-		width: 60%;
-		display: flex;
-		flex-direction: row;
-		justify-content: flex-end;
-		color: #FF3B00;
-	}
-
-	.cuicon {
-		font-size: 18px;
-	}
-
-	.regFrom_tom_yzlabel {
-		width: 60%;
-		text-align: right;
-	}
-
-	.cuIcon-squarecheckfill {
-		background: #FF3B00;
-		position: relative;
-		border: 2px #ccc solid;
-		box-sizing: border-box;
-		border-radius: 3px;
-	}
-
-	.cuIcon-square {
-		background: #fff;
-		border: 2px #ccc solid;
-		box-sizing: border-box;
-		border-radius: 3px;
 	}
 </style>
