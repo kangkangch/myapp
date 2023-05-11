@@ -6,7 +6,8 @@
 	<view class="page-my">
 		<!-- 其他服务 -->
 		<view class="other">
-			<view class="item" v-for="(item, index) in otherList" :key="index" @tap="toService(item.url)">
+			<view class="item" v-for="(item, index) in otherList" :key="index"
+				@click="$goBack(2, item.url)">
 				<view :class="index == otherList.length - 1 ? 'content active' : 'content'">
 					<cl-text :size="32" :value="item.title" color="#373737" bold></cl-text>
 					<cl-icon name="cl-icon-arrow-right"></cl-icon>
@@ -15,7 +16,8 @@
 		</view>
 		<u-tabbar :value="value" :fixed="true" :placeholder="true" :safeAreaInsetBottom="true">
 			<!-- <u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text" @tap="goto(item.pagePath)">-->
-			<u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text" @click="$goBack(3, item.pagePath)">
+			<u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text"
+				@click="$goBack(3, item.pagePath)">
 				<image class="u-page__item__slot-icon" slot="active-icon" :src="item.selectedIconPath"></image>
 				<image class="u-page__item__slot-icon" slot="inactive-icon" :src="item.iconPath"></image>
 			</u-tabbar-item>
@@ -24,34 +26,53 @@
 </template>
 
 <script>
-	import { user_member } from "@/utils/tabbar.js"
+	import {
+		user_member
+	} from "@/utils/tabbar.js"
+
+	const db = uniCloud.databaseForJQL()
 	export default {
 		data() {
 			return {
 				otherList: [{
 						//查看自己的会员的信息（到期时间，是否续费等）
 						title: "我的会员",
-						url: "/pages/public/my/certificate"
+						url: "/pages/student/my/myMember"
 					},
 					{
 						//查看自己名下的学员
 						title: "我的学员",
-						url: "/pages/public/my/myInfo"
+						url: "/pages/member/member/myStudent"
 					},
 					{
 						//优惠券
 						title: "优惠券",
-						url: "/pages/public/my/act"
+						url: "/pages/member/member/myCoupons"
 					},
 				],
 				mytabbar: user_member,
 				value: 2,
+				// myStudent: []
 			};
 		},
 		created() {
 
 		},
 		methods: {
+			async toMyStudent() {
+				let user = uni.getStorageSync('user')
+				let binds = await db.collection('bind').where({
+					member_id: user.user_id
+				}).get()
+				let myStudents = []
+				for (let bind of binds.data) {
+					myStudents.push(bind.student_id)
+				}
+				// uni.navigateTo({
+				// 	url: '/pages/member/member/myStudent?myStudents=' +
+				// 		encodeURIComponent(JSON.stringify(myStudents))
+				// })
+			},
 			//去其他服务页
 			toService(url) {
 				uni.navigateTo({

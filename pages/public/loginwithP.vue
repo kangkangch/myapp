@@ -101,7 +101,10 @@
 						icon: "none"
 					})
 					uni.switchTab({
-						url: '/pages/public/home/home'
+						url: '/pages/public/home/home',
+						success() {
+							window.location.reload();
+						}
 					})
 				} catch (e) {
 					console.log("登录失败",e.message);

@@ -1,75 +1,94 @@
 <template>
-	<view class="page-my">
-		<view class="group_warp">
-			<view class="u-page__item" style="margin: 0 10%">
-				<u-cell-group>
-					<u-cell title="基本信息" class="title"></u-cell>
-					<u-cell title="用户id" :value="user.id"></u-cell>
-					<u-cell title="手机" :value="user.phone"></u-cell>
-					<u-cell title="用户密码" :value="user.password"></u-cell>
-					<u-cell title="地址" :value="user.area"></u-cell>
-					<u-cell title="用户邮箱" :value="user.email"></u-cell>
-				</u-cell-group>
+	<unicloud-db ref="udb" :collection="collection" :where="`_id == '${user.user_id}'`"
+		v-slot:default="{data,loading,error,options}" loadtime="onready" @load="setData" :options="options"
+		:getone="true">
+		<view v-if="error">{{error.message}}</view>
+		<view v-else-if="loading">
+			<view class="group_warp">
+				<u-cell title="信息正在加载" class="title" />
 			</view>
 		</view>
-		<view class="group_warp">
-			<view class="u-page__item" style="margin: 0 10%">
-				<u-cell-group>
-					<u-cell title="挂靠关系" class="title"></u-cell>
-					<u-cell title="暂未挂靠" style="text-align: center;"></u-cell>
-				</u-cell-group>
-			</view>
-		</view>
+		<view v-else class="page-my">
 
-<!-- 		<view class="other">
-			<view class="item" v-for="(item, index) in otherList" :key="index" @tap="toService(item.url)">
-				<view :class="index == otherList.length - 1 ? 'content active' : 'content'">
-					<cl-text :size="32" :value="item.title" color="#373737" bold></cl-text>
-					<cl-icon name="cl-icon-arrow-right"></cl-icon>
+			<view class="group_warp">
+				<view class="u-page__item" style="margin: 0 10%">
+					<u-cell-group>
+						<u-cell title="基本信息" class="title"></u-cell>
+						<u-cell title="用户id" :value="userInfo._id"></u-cell>
+						<u-cell title="手机" :value="userInfo.phone"></u-cell>
+						<!-- <u-cell title="用户密码" :value="user.password"></u-cell> -->
+						<u-cell title="地址" :value="userInfo.area"></u-cell>
+						<u-cell title="用户邮箱" :value="userInfo.email"></u-cell>
+						<u-cell title="注册时间"
+							:value="userInfo.register_time? Date(userInfo.register_time).slice(4,24):''"></u-cell>
+					</u-cell-group>
 				</view>
 			</view>
-		</view> -->
-	</view>
+			<view class="group_warp" v-if="user.role_id == 1">
+				<view class="u-page__item" style="margin: 0 10%">
+					<u-cell-group>
+						<u-cell title="挂靠关系" class="title"></u-cell>
+						<view v-if="myMember">
+							<u-cell title="会员手机" :value="myMember.phone"></u-cell>
+							<u-cell title="会员邮箱" :value="myMember.email"></u-cell>
+							<u-button type="warning" @click="relieve" style="margin-top: 50rpx;">解除挂靠</u-button>
+						</view>
+						<u-cell v-else title="暂未挂靠" style="text-align: center;"></u-cell>
+					</u-cell-group>
+				</view>
+			</view>
+
+		</view>
+	</unicloud-db>
 </template>
 
 <script>
+	const db = uniCloud.databaseForJQL()
+
 	export default {
 		data() {
 			return {
-				otherList: [{
-						title: "我的证书",
-						url: "/pages/public/my/certificate"
-					},
-					{
-						title: "我的信息",
-						url: "/pages/public/my/myInfo"
-					},
-					{
-						title: "活动",
-						url: "/pages/public/my/act"
-					},
-					{
-						title: "成为会员",
-						url: "/pages/student/my/beMember"
-					},
-				],
 				user: null,
+				userInfo: {},
+				collection: 'user',
+				myMember: null
 			};
 		},
-		created() {
-
+		created() {},
+		onReady() {
+			this.$refs.udb.loadData()
 		},
-		onLoad(e) {
-			let users = require('@/static/data/user.json');
-			let id = uni.getStorageSync('user').uId;
-			for (let item of users) {
-				if (item.id == Number(id)) {
-					this.user = item;
-					break;
-				}
+		async onLoad() {
+			var user = uni.getStorageSync('user')
+			if (user) this.user = user
+
+			//如果是学员就加载挂靠关系
+			if (user.role_id == 1) {
+				var bind = await db.collection('bind').where({
+					student_id: user.user_id
+				}).get()
+				if (bind.data.length) {
+					var memberInfo = await db.collection('user').where({
+						_id: bind.data[0].member_id
+					}).field("phone, email").get()
+					this.myMember = memberInfo.data[0]
+				} else this.myMember = null
 			}
+			// this.$refs.udb.loadData()
 		},
 		methods: {
+			setData(data) {
+				this.userInfo = data
+			},
+			async relieve() {
+				// console.log(this.user.user_id)
+				await db.collection('bind').where("student_id == '" + this.user.user_id + "'").remove().then(res => {
+					this.myMember = null
+					console.log("解除挂靠成功", res)
+				}).catch(e => {
+					console.log("解除挂靠失败", e)
+				})
+			},
 			//去其他服务页
 			toService(url) {
 				uni.navigateTo({
@@ -131,6 +150,7 @@
 		background-color: #ffffff;
 		padding-bottom: 20rpx;
 		margin-top: 40rpx;
+
 		.title {
 			font-weight: 1000;
 			text-align: center;

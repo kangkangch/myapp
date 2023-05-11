@@ -177,7 +177,9 @@
 
 		&__content {
 			padding: 12px 25px 25px 25px;
-			@include flex;
+			// @include flex;
+			display: flex;
+			flex-direction: column;
 			justify-content: center;
 
 			&__text {

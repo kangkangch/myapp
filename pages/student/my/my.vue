@@ -7,33 +7,37 @@
 			<view class="info">
 				<view class="detail">
 					<cl-text :size="36" :value="'用户'+ user.user_name" color="#FFFFFF" block bold></cl-text>
-					<view class="tag">ID:  {{user.user_id}}</view>
+					<view class="tag">ID: {{user.user_id}}</view>
 				</view>
 			</view>
 		</view>
 		<!-- 其他服务 -->
 		<view class="other">
-			<view class="item" v-for="(item, index) in otherList" :key="index" @tap="toService(item.url)">
-				<view :class="index == otherList.length - 1 ? 'content active' : 'content'">
-					<cl-text :size="32" :value="item.title" color="#373737" bold></cl-text>
-					<cl-icon name="cl-icon-arrow-right"></cl-icon>
-				</view>
+			<view class="item" v-for="(item, index) in otherList" :key="index"
+				@tap="$goBack(2, item.url)">
+				<view :class=" index==otherList.length - 1 ? 'content active' : 'content'">
+					<cl-text :size=" 32" :value="item.title" color="#373737" bold></cl-text>
+				<cl-icon name="cl-icon-arrow-right"></cl-icon>
 			</view>
 		</view>
-		<u-button type="warning" shape="circle" text="退出登录" customStyle="margin-top: 80rpx; width: 80%"
-			@click="logout"></u-button>
-		<u-tabbar :value="value" :fixed="true" :placeholder="true" :safeAreaInsetBottom="true">
-			<!-- <u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text" @tap="goto(item.pagePath)">-->
-			<u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text" @click="$goBack(3, item.pagePath)">
-				<image class="u-page__item__slot-icon" slot="active-icon" :src="item.selectedIconPath"></image>
-				<image class="u-page__item__slot-icon" slot="inactive-icon" :src="item.iconPath"></image>
-			</u-tabbar-item>
-		</u-tabbar>
+	</view>
+	<u-button type="warning" shape="circle" text="退出登录" customStyle="margin-top: 80rpx; width: 80%"
+		@click="logout"></u-button>
+	<u-tabbar :value="value" :fixed="true" :placeholder="true" :safeAreaInsetBottom="true">
+		<!-- <u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text" @tap="goto(item.pagePath)">-->
+		<u-tabbar-item v-for="(item, index) in mytabbar" :key="index" :text="item.text"
+			@click="$goBack(3, item.pagePath)">
+			<image class="u-page__item__slot-icon" slot="active-icon" :src="item.selectedIconPath"></image>
+			<image class="u-page__item__slot-icon" slot="inactive-icon" :src="item.iconPath"></image>
+		</u-tabbar-item>
+	</u-tabbar>
 	</view>
 </template>
 
 <script>
-	import { user_student } from "@/utils/tabbar.js";
+	import {
+		user_student
+	} from "@/utils/tabbar.js";
 	export default {
 		data() {
 			return {
@@ -51,7 +55,7 @@
 					},
 					{
 						title: "成为会员",
-						url: "/pages/student/my/beMember"
+						url: "/pages/student/my/myMember"
 					},
 				],
 				user: null,

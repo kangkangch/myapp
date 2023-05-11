@@ -18,14 +18,13 @@
 		</view>
 		<!-- 列表 -->
 		<unicloud-db ref="udb" :collection="collectionList" field="name,intro,cover_path,price,vip_price,exam_id"
-			 :orderby="orderby" v-slot:default="{data,loading,error,options}"
-			:options="options">
+			:where="`end_time != 'undefine' || end_time < '${getTime}'`" :orderby="orderby"
+			v-slot:default="{data,loading,error,options}" :options="options">
 			<view v-if="error">{{error.message}}</view>
 			<view v-else-if="loading">课程正在加载...</view>
-			<view v-else class="content">
+			<view v-else-if="data.length" class="content">
 				<view class="list">
-					<view class="subject" v-for="(item, index) in data" :key="index"
-						@click="gotoCourse(item._id)">
+					<view class="subject" v-for="(item, index) in data" :key="index" @click="gotoCourse(item._id)">
 						<image class="picture" :src="item.cover_path" mode="aspectFill"></image>
 						<view class="detail">
 							<cl-text :size="32" :value="item.name" color="#303030" bold :ellipsis="2"></cl-text>
@@ -33,10 +32,14 @@
 							:margin="[8, 0, 0, 0]"></cl-text> -->
 							<cl-text :size="24" value="单价:" color="#303030"></cl-text>
 							<cl-text :size="24" value="￥" color="#FF724E"></cl-text>
-							<cl-text :size="40" :value="(item.price/100).toFixed(2)" color="#FF724E" :margin="[8, 0, 0, 0]"></cl-text>
+							<cl-text :size="40" :value="(item.price/100).toFixed(2)" color="#FF724E"
+								:margin="[8, 0, 0, 0]"></cl-text>
 						</view>
 					</view>
 				</view>
+			</view>
+			<view v-else>
+				暂时没有课程
 			</view>
 		</unicloud-db>
 
@@ -64,6 +67,8 @@
 	const course = require('@/static/data/course.json');
 	const dbOrderby = 'name';
 
+	const db = uniCloud.databaseForJQL();
+
 	export default {
 		mounted() {},
 		data() {
@@ -84,16 +89,25 @@
 				orderby: dbOrderby,
 				keyword: "", //搜索用的关键词
 				user_id: "",
+				role_id: 1,
 				mytabbar: user_guest,
-				value: 0
+				value: 0,
+				where: '',
+
+				//传给下一页的参数
+				isBuy: false,
+				allBuy: false,
+				to_ids: [],
+				myStudentsId: []
 			};
 		},
 
 		onLoad(e) {
 			this.gettabbar();
-			let user_id = uni.getStorageSync('user')._id;
-			if (user_id) {
-				this.user_id = user_id;
+			let user = uni.getStorageSync('user');
+			if (user) {
+				this.user_id = user.user_id
+				this.role_id = user.role_id
 			}
 
 			// console.log(course);
@@ -101,7 +115,12 @@
 			// this.getlist()
 		},
 		onReady() {
-		  this.$refs.udb.loadData()
+			var nowTime = this.getTime();
+
+			this.where = "entime == '' || end_time<'" + nowTime + "'"
+			// "`username=='${tempstr}'`"
+			// this.where = "`end_time == '' || end_time < '${getTime}'`"
+			this.$refs.udb.loadData()
 		},
 
 
@@ -111,7 +130,7 @@
 			toChange() {
 				console.log(this.active);
 			},
-			gotoCourse(courseId) {
+			async gotoCourse(course_id) {
 				let user = uni.getStorageSync('user');
 				if (user == '') {
 					uni.showToast({
@@ -119,25 +138,76 @@
 						"icon": 'none'
 					})
 				} else {
+
+					let params = {
+						user_id: this.user_id,
+						course_id: course_id
+					}
+
+					this.isBuy = await this.hasBought(params);
+					this.allBuy = await this.hasAllBought(params);
+					
+
 					uni.navigateTo({
-						url: '/pages/course/course?course_id=' + courseId
+						url: '/pages/course/course?course_id=' + course_id + "&isBuy=" + this.isBuy +
+							"&allBuy=" + this.allBuy + "&myStudentsId=" + encodeURIComponent(JSON.stringify(this
+								.myStudentsId))
 					})
 				}
 			},
-			getlist() {
-				getLdata('/static/data/course.json').then(res => {
-					console.log(res)
-					this.datalist = res.data;
-				}).catch(err => {
-					console.log(err)
-				})
-			},
 			gettabbar() {
-				let token = uni.getStorageSync('token');
+				let user = uni.getStorageSync('user');
 				// console.log(user.role_id);
-				if (token == '') this.mytabbar = user_guest;
-				else if (token.role_id == 2) this.mytabbar = user_member;
+				if (user == '') this.mytabbar = user_guest;
+				else if (user.role_id == 2) this.mytabbar = user_member;
 				else this.mytabbar = user_student;
+			},
+
+			async hasBought(params) {
+				let course = await db.collection('attend_course')
+					.where(`course_id=='${params.course_id}' && user_id == '${params.user_id}'`).get();
+				course = course.data;
+				// console.log(course, params);
+
+				//如果已经购买该课程返回true
+				if (course.length != 0) {
+					return true;
+				} else return false;
+			},
+
+			async hasAllBought(params) {
+				//获取所有挂靠关系
+				const myBinds = await db.collection('bind').where({
+					member_id: params.user_id
+				}).get()
+				// console.log(myBinds);
+				//通过挂靠关系中的学生id查找参加课程表获取学生是否参加课程
+				this.myStudentsId = []
+				for (let bind of myBinds.data) {
+					var attend_course = await db.collection('attend_course').where({
+						user_id: bind.student_id,
+						course_id: params.course_id
+					}).get()
+					//如果没参加就将id插入到myStudentsId
+					if (!attend_course.data.length) this.myStudentsId.push(bind.student_id)
+				}
+				if (this.myStudentsId.length == 0) return true;
+				return false
+			},
+
+			getTime() {
+				var date = new Date();
+				var year = date.getFullYear();
+				var month = date.getMonth() + 1;
+				var day = date.getDate();
+				// hour = date.getHours() < 10 ? "0" + date.getHours() : date.getHours(),
+				// minute = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes(),
+				// second = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+				month >= 1 && month <= 9 ? (month = "0" + month) : "";
+				day >= 0 && day <= 9 ? (day = "0" + day) : "";
+				// var timer = year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+				var timer = year + '-' + month + '-' + day
+				return timer;
 			}
 		},
 	};

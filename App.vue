@@ -25,6 +25,13 @@
 	@import "@/uni_modules/uview-ui/index.scss";
 	
 	@import "@/node_modules/cl-uni/index.scss";
+	
+	@import url("./static/css/common.css");
+	
+	@import '@/common/uni.css';
+	// @import '@/common/uni-icons.css';
+	// @import '@/common/admin-icons.css';
+	// @import '@/common/theme.scss';
 
 	// 设置整个项目的背景色
 	page {

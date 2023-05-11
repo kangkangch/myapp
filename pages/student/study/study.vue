@@ -7,16 +7,18 @@
 			<!-- 搜索栏 -->
 			<view class="search">
 				<!-- <cl-search v-model="keyword" placeholder="请输入关键词" @search="onSearch"></cl-search> -->
-				<u-search v-model="keyword" height="40" :show-action="false" margin="10rpx 30rpx" :action-style= '{  }'></u-search>
+				<u-search v-model="keyword" height="40" :show-action="false" margin="10rpx 30rpx"
+					:action-style='{  }'></u-search>
 			</view>
 		</view>
 		<!-- 列表 -->
 		<view class="content">
 			<view class="list" v-if="user != null">
-				<view class="subject" v-for="(item, index) in content" :key="index">
-					<image class="picture" :src="item.picture" mode="aspectFill"></image>
+				<view class="subject" v-for="(item, index) in courseList" :key="index" @click="$goBack(2,'/pages/course/course?course_id=' + item.course_id[0]._id + '&exam=true')">
+					<image class="picture" :src="item.course_id[0].cover_path" mode="aspectFill"></image>
 					<view class="detail">
-						<cl-text :size="32" :value="item.name" color="#303030" bold :ellipsis="2"></cl-text>
+						<cl-text :size="32" :value="item.course_id[0].name" color="#303030" bold
+							:ellipsis="2"></cl-text>
 						<!-- 						<cl-text :size="20" :value="item.tip" color="#C5C5C5" bold block
 							:margin="[8, 0, 0, 0]"></cl-text>
 						<cl-text :size="24" value="单价:" color="#303030"></cl-text>
@@ -49,7 +51,13 @@
 </template>
 
 <script>
-	import { user_guest, user_member, user_student } from "@/utils/tabbar.js"
+	const db = uniCloud.databaseForJQL()
+
+	import {
+		user_guest,
+		user_member,
+		user_student
+	} from "@/utils/tabbar.js"
 	export default {
 		data() {
 			return {
@@ -66,63 +74,76 @@
 				],
 				content: [{
 						name: "普通人也可执行的赚钱思路课程",
-						picture: require("@/static/images/index/course1.png"),
+						cover_path: require("@/static/images/index/course1.png"),
 						price: "68.0",
 					},
 					{
 						name: "普通人也可执行的赚钱思路课程",
-						picture: require("@/static/images/index/course2.png"),
+						cover_path: require("@/static/images/index/course2.png"),
 						price: "52.0",
 					},
 					{
 						name: "普通人也可执行的赚钱思路课程",
-						picture: require("@/static/images/index/course3.png"),
+						cover_path: require("@/static/images/index/course3.png"),
 						price: "33.0",
 					},
 					{
 						name: "普通人也可执行的赚钱思路课程",
-						picture: require("@/static/images/index/course1.png"),
+						cover_path: require("@/static/images/index/course1.png"),
 						price: "68.0",
 					},
 					{
 						name: "普通人也可执行的赚钱思路课程",
-						picture: require("@/static/images/index/course2.png"),
+						cover_path: require("@/static/images/index/course2.png"),
 						price: "52.0",
 					},
 					{
 						name: "普通人也可执行的赚钱思路课程",
-						picture: require("@/static/images/index/course3.png"),
+						cover_path: require("@/static/images/index/course3.png"),
 						price: "33.0",
 					},
 				],
+				courseList: [],
 				keyword: "", //搜索用的关键词
 				user: null,
 				mytabbar: null,
 				value: 1,
+				collection: 'attend_course'
 			};
 		},
-		
-		
-		onLoad() {
+
+
+		async onLoad() {
+			uni.showLoading({
+				title: "课程加载中"
+			})
 			let user = uni.getStorageSync('user');
-			if(user != '') this.user = user;
-			console.log(this.user);
+
+			const attendCourseList = db.collection('attend_course').where({
+				user_id: user.user_id
+			}).getTemp()
+
+			const courseList = await db.collection(attendCourseList, 'course').field('course_id').get()
+
+			this.courseList = courseList.data
+
+			if (user != '') this.user = user;
 			this.gettabbar();
+			uni.hideLoading()
 		},
-		
+
 		methods: {
 			toChange() {
 				console.log(this.active);
 			},
-			gettabbar(){
+			gettabbar() {
 				let user = uni.getStorageSync('user');
-				console.log(user.role_id);
-				if(user == '') this.mytabbar = user_guest;
-				else if(user.role_id ==2 ) this.mytabbar = user_member;
+				if (user == '') this.mytabbar = user_guest;
+				else if (user.role_id == 2) this.mytabbar = user_member;
 				else this.mytabbar = user_student;
-			}
+			},
 		},
-		
+
 	};
 </script>
 
@@ -224,7 +245,7 @@
 			justify-content: space-between;
 			padding: 30rpx 30rpx 30rpx 80rpx;
 			border-radius: 30rpx;
-			
+
 			.right {
 				display: flex;
 				padding: 4rpx 16rpx 4rpx 20rpx;

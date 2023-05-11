@@ -267,8 +267,15 @@
 				}
 				// console.log(this.data);
 
-				userIo.registerUser(this.data).then(e => {
-						console.log(e);
+				userIo.registerUser(this.data).then(res => {
+						console.log(res);
+						uni.showToast({
+							title:"注册成功",
+							icon:"success"
+						})
+						uni.navigateTo({
+							url:'/pages/public/loginwithP'
+						})
 					})
 					.catch(e => {
 						console.log(e.message);

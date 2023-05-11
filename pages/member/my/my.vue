@@ -6,8 +6,8 @@
 			<!-- 个人信息 -->
 			<view class="info">
 				<view class="detail">
-					<cl-text :size="36" :value="'用户'+ user.username" color="#FFFFFF" block bold></cl-text>
-					<view class="tag">ID:  {{user.uId}}</view>
+					<cl-text :size="36" :value="'用户'+ user.user_name" color="#FFFFFF" block bold></cl-text>
+					<view class="tag">ID:  {{user.user_id}}</view>
 				</view>
 			</view>
 		</view>
@@ -49,6 +49,14 @@
 						title: "活动",
 						url: "/pages/public/my/act"
 					},
+					{
+						title: "考试情况",
+						url: "/pages/public/my/exam/myExam"
+					},
+					{
+						title: "我的订单",
+						url: "/pages/public/my/order/myOrder"
+					}
 				],
 				user: null,
 				mytabbar : user_member,

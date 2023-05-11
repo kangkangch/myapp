@@ -5,6 +5,11 @@
 			<view v-if="error">{{error.message}}</view>
 			<view v-else-if="loading">课程正在加载...</view>
 			<view v-else class="body">
+
+
+				<orderGet :key="orderGetKey" :params="params" :otherInfo="otherInfo" :order_type="1"
+					@close="modal_show = false" :modal_show="modal_show"></orderGet>
+
 				<u-row>
 					<u-col span="5">
 						<view>
@@ -19,7 +24,7 @@
 
 				</u-row>
 				<u-line margin="10rpx"></u-line>
-				<view v-if="isBuy" class="course_price">
+				<view v-if="(user.role_id == 1 && !isBuy )|| (!isBuy || !allBuy)" class="course_price">
 					<view class="freu">
 						会员价：￥{{(course.vip_price/100).toFixed(2)}}
 					</view>
@@ -39,8 +44,25 @@
 				<view class="dibu">
 					<u-row customStyle="margin-bottom: 10px">
 						<u-col span="12">
-							<view class="goumai2" v-if="datalist.pay==0" @click="getsc(1)">前往考试</view>
-							<view class="goumai" @click="getsc(3)">立即购买</view>
+							<view class="goumai" v-if="course.end_time != '' && course.end_time >= getTime">该课程已经结束
+							</view>
+							<view v-else>
+								<view v-if="exam">
+									<view class="goumai2" @click="toExam">前往考试</view>
+								</view>
+								<view v-else>
+									<view v-if="!isBuy" class="goumai" style="margin-bottom: 20rpx;" @click="getOrder">
+										购买课程
+									</view>
+									<view v-else>
+										<view class="goumai" style="margin-bottom: 20rpx;"
+											v-if="user.role_id == 2 && !allBuy" @click="getOrder">为学员购买</view>
+										<view class="goumai2" v-if="isBuy " @click="toExam">前往考试</view>
+									</view>
+								</view>
+
+
+							</view>
 						</u-col>
 					</u-row>
 				</view>
@@ -58,175 +80,186 @@
 	import {
 		onLoad
 	} from "../../uni_modules/uview-ui/libs/mixin/mixin";
+	import {
+		oderGet
+	} from "@/components/orderGet/orderGet.vue"
 
-	const db = uniCloud.database();
+	const db = uniCloud.databaseForJQL();
 
 	export default {
+		components: {
+			oderGet,
+		},
 		data() {
 			return {
+				user: null,
 				where: "",
 				course: [],
-				lx: 0,
-				course_id: 0,
-				uid: 0,
+				nowPrice: 0,
+				modal_show: false,
+				exam: false, //判断是否是从学习页进入
+				// course_id: 0,
+				allBuy: false,
 				//用于存放是否购买了该课程
 				isBuy: false,
-				sc: 0,
-				datalist: {},
-				list4: [{
-					name: '介绍',
-				}],
+				to_ids: [],
+				params: {}, //用于传递给订单生成组件的订单参数
+				otherInfo: {}, //用于传递给订单生成组件的显示参数
+				orderGetKey: 0,
+				end_time: '',
+				myStudentsId: [],
+				myCoupons: [],
+				attendCourseInfo: {}
 			}
 		},
-		async onLoad(e) {
-			let uid = uni.getStorageSync('user').user_id;
-			if (uid) {
-				this.uid = uid;
-			}
-			let params = {
-				user_id: uid,
-				course_id: e.course_id
-			}
 
-			this.isBuy = await this.hasBought(params);
-			console.log(111);
+		onLoad(e) {
+			const course_id = e.course_id
+			this.user = uni.getStorageSync('user');
+			if (e.exam != "true") {
+				this.where = "_id=='" + course_id + "'"
+				this.allBuy = e.allBuy == 'false' ? false : true
+				this.isBuy = e.isBuy == 'false' ? false : true
+				this.myStudentsId = JSON.parse(decodeURIComponent(e.myStudentsId))
+				// console.log(this.myStudentsId)
 
-			if (!this.isBuy) {
-				this.where = "_id=='" + e.course_id + "'"
-				this.course_id = e.course_id;
+				this.to_ids = []
+				if (!this.isBuy && this.user.role_id == 1) {
+					this.to_ids.push(this.user_id);
+					// this.course_id = e.course_id;
+				}
+			} else {
+				this.exam = true
 			}
-
+			// console.log(this.exam)
+			// uni.hideLoading()
 		},
+
+		created() {},
+
+		onReady(e) {
+			if (this.where)
+				this.$refs.udb.loadData()
+		},
+
 		methods: {
 			setData(data, ended, pagination) {
 				this.course = data[0];
-				console.log(this.course);
+				console.log(this.course)
+				// console.log(this.course);
 			},
 
-			//判断是否已购买课程，如果已经购买，直接跳转
-			async hasBought(params) {
-				let course = await db.collection('attend_course')
-					.where("course_id==${params.course_id} && user_id = ${params.user_id}")
-				console.log(course);
-				if (course.length != 0) {
-					return true;
-				} else return false;
-			},
-
-			kecheng(item) {
-				// console.log(item)
-				if (this.datalist.pay == 0) {
-					if (this.uid == 0) {
-						uni.showToast({
-							title: "您还未登录！",
-							icon: "none"
-						})
-					} else {
-						this.video = item.video
-						this.lx = 1
-						this.addsc();
-					}
+			async toExam() {
+				var attend_course = await db.collection('attend_course').where({
+					user_id: this.user.user_id,
+					course_id: this.course._id
+				}).get()
+				this.attendCourseInfo = attend_course.data[0]
+				if (this.attendCourseInfo.chance <= 0) {
+					uni.showToast({
+						title: "已经没有参考机会了哦",
+						icon: "error"
+					})
+					return
 				} else {
-					if (this.gm == 0) {
-						uni.showToast({
-							title: "您还未购买此课程！",
-							icon: "none"
-						})
-					} else {
-						this.video = item.video
-						this.lx = 1
-						this.addsc();
-					}
+					uni.showModal({
+						title: "",
+						content: "确定要进入考试吗？",
+						success: function(res) {
+							var that = this
+
+							if (res.confirm) {
+								console.log(this.course)
+								console.log('开始考试');
+								uni.navigateTo({
+									url: "/pages/public/my/exam/exam?course_id=" + this.course._id
+								})
+							} else if (res.cancel) {
+								console.log('用户点击取消');
+							}
+						}.bind(this)
+					})
 				}
 
 			},
-			addsc() {
-				if (this.uid == 0) {
+
+
+			async getOrder() {
+				//如果是学员且没买
+				if (!this.isBuy && this.user.role_id == 1)
+					this.nowPrice = this.course.price;
+				else this.nowPrice = 0
+
+				//判断如果是会员且所有都购买，则显示信息
+				if (this.allBuy && this.isBuy) {
 					uni.showToast({
-						title: "您还未登录！",
+						title: "您和您名下所有学员都已购买该课程，无需再次购买",
 						icon: "none"
 					})
 				} else {
-					uni.$u.http.post('/courseUser/add', {
-						id: this.id,
-						uid: this.uid,
-						lx: 2
-					}).then(res => {
-						this.sc = 1
-					}).catch(err => {})
-				}
-			},
-			getsc(e) {
-				if (this.uid == 0) {
-					uni.showToast({
-						title: "您还未登录！",
-						icon: "none"
-					})
-				} else {
-					if (e == 0) {
-						uni.$u.http.post('/courseUser/add', {
-							id: this.id,
-							uid: this.uid,
-							lx: 0
-						}).then(res => {
-							this.sc = 1
-						}).catch(err => {})
-					} else if (e == 1) {
-						uni.$u.http.post('/courseUser/add', {
-							id: this.id,
-							uid: this.uid,
-							lx: 1
-						}).then(res => {
-							this.gm = 1
-						}).catch(err => {})
-					} else if (e == 2) {
-						uni.$u.http.post('/courseUser/del', {
-							id: this.id
-						}).then(res => {
-							this.sc = 0
-						}).catch(err => {})
-					} else if (e == 3) {
 
-						uni.$u.http.post('/Pay/getSign', {
-							id: this.id,
-							uid: this.uid,
-							lx: 0
-						}).then(res => {
-							console.log(res)
-							uni.requestPayment({
-								timeStamp: res.timeStamp,
-								nonceStr: res.nonceStr,
-								package: res.package,
-								signType: res.signType,
-								paySign: res.paySign,
-								success: (res) => {
-									uni.showToast({
-										title: "支付成功!"
-									})
-									this.gm = 1
-								},
+					//在生成订单前获取优惠券
+					let nowTime = this.getTime()
 
-								fail: (res) => {
-									uni.showModal({
-										content: "支付失败,原因为: " + res.errMsg,
-										showCancel: false
-									})
+					// var myCoupons = await db.collection('use_coupon').where(`user_id == "${this.user.user_id}" && status == false && end_time <= "${nowTime}"`).get()
+					const command = db.command
+					const Coupons = await db.collection('use_coupon').where({
+						user_id: this.user.user_id,
+						status: false,
+						end_time: command.gte(nowTime)
+					}).get()
+					var myCoupons = Coupons.data
+					console.log(myCoupons)
+					
 
-								}
-							})
-
-						}).catch(err => {})
-
+					// console.log(this.nowPrice)
+					this.params = {
+						user_id: this.user.user_id,
+						price: this.nowPrice,
+						goods_type: 1,
+						goods_id: this.course._id,
+						to_ids: this.to_ids,
 					}
-				}
 
+					this.orderGetKey++;
+					// console.log(this.orderGetKey);
+
+					this.otherInfo = {
+						role_id: this.user.role_id,
+						course_name: this.course.name,
+						myStudentsId: this.myStudentsId,
+						vip_price: this.course.vip_price,
+						isBuy: this.isBuy,
+						myCoupons: myCoupons
+					}
+					this.modal_show = true;
+				}
 			},
+
+
+			getTime(time) {
+				if (time) var date = time
+				else var date = new Date();
+
+				var year = date.getFullYear();
+				var month = date.getMonth() + 1;
+				var day = date.getDate();
+				// hour = date.getHours() < 10 ? "0" + date.getHours() : date.getHours(),
+				// minute = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes(),
+				// second = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+				month >= 1 && month <= 9 ? (month = "0" + month) : "";
+				day >= 0 && day <= 9 ? (day = "0" + day) : "";
+				// var timer = year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+				var timer = year + '-' + month + '-' + day
+				return timer;
+			}
+
 
 		}
 	}
 </script>
 
-<style>
+<style lang="scss">
 	page {
 		background-color: #efefefdb;
 	}
@@ -295,7 +328,7 @@
 		position: fixed;
 		right: 5%;
 		left: 5%;
-		bottom: 30rpx;
+		bottom: 10%;
 		background-color: #fff;
 		height: 80rpx;
 		border-radius: 10rpx;
